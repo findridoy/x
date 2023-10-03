@@ -6,10 +6,11 @@ import (
 	"log/slog"
 	"mime/multipart"
 	"os"
+	"strings"
 )
 
 func Put(pathIncludingName string, file multipart.File) error {
-	if err := os.MkdirAll("storage/app", os.ModePerm); err != nil {
+	if err := ensurePath(pathIncludingName); err != nil {
 		return err
 	}
 
@@ -25,6 +26,15 @@ func Put(pathIncludingName string, file multipart.File) error {
 	}(f)
 
 	if _, err := io.Copy(f, file); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ensurePath(pathIncludingName string) error {
+	items := strings.Split(pathIncludingName, "/")
+	pathWithoutName := strings.Join(items[:len(items)-1], "/")
+	if err := os.MkdirAll("storage/app/"+pathWithoutName, os.ModePerm); err != nil {
 		return err
 	}
 	return nil

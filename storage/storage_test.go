@@ -26,7 +26,7 @@ func TestPut(t *testing.T) {
 	}
 
 	// Call the Put function with the temporary file
-	pathIncludingName := "testfile.txt"
+	pathIncludingName := "paht/to/the/testfile.txt"
 	if err := Put(pathIncludingName, tmpFile); err != nil {
 		t.Fatalf("Put failed: %s", err)
 	}
