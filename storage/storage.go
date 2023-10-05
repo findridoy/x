@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -8,6 +9,8 @@ import (
 	"os"
 	"strings"
 )
+
+const basePath = "storage/app/"
 
 func Put(pathIncludingName string, file multipart.File) error {
 	if err := ensurePath(pathIncludingName); err != nil {
@@ -29,6 +32,36 @@ func Put(pathIncludingName string, file multipart.File) error {
 		return err
 	}
 	return nil
+}
+
+func Exists(pathIncludingName string) (bool, error) {
+	f, err := os.Open(basePath + pathIncludingName)
+	if err != nil {
+		if errors.Is(os.ErrNotExist, err) || os.IsNotExist(err) {
+			return false, nil
+		}
+		fmt.Printf("%t", err)
+		return false, err
+	}
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			slog.Error("closing file: %w", err)
+		}
+	}(f)
+	return true, nil
+}
+
+func Missing(pathIncludingName string) (bool, error) {
+	exists, err := Exists(pathIncludingName)
+	if err != nil {
+		return false, err
+	}
+	return !exists, nil
+}
+
+func Delete(pathIncludingName string) error {
+	return os.Remove(basePath + pathIncludingName)
 }
 
 func ensurePath(pathIncludingName string) error {
