@@ -64,6 +64,26 @@ func Delete(pathIncludingName string) error {
 	return os.Remove(basePath + pathIncludingName)
 }
 
+func TempPut(file multipart.File, fileType ...fileType) (string, error) {
+	pattern := "*"
+	if len(fileType) > 0 {
+		pattern = pattern + "." + string(fileType[0])
+	}
+
+	f, err := os.CreateTemp("", pattern)
+	if err != nil {
+		return "", fmt.Errorf("createing temp file: %w", err)
+	}
+	defer f.Close()
+
+	_, err = io.Copy(f, file)
+	if err != nil {
+		return "", fmt.Errorf("copy file: %w", err)
+	}
+
+	return f.Name(), nil
+}
+
 func ensurePath(pathIncludingName string) error {
 	items := strings.Split(pathIncludingName, "/")
 	pathWithoutName := strings.Join(items[:len(items)-1], "/")
